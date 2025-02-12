@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Processing Site for Perfect Moving">
+    <meta name="Author" content="Nebojsa Mandic">
+    <link rel="stylesheet" href="pages/index.css" />
+    <link rel="icon" id="appIcon" type="image/x-icon" href="https://s3.us-east-2.amazonaws.com/perfectmoving-api.movers-software.com/uploads/company/favicon/57c9a7309b4b5989a33719558d2c88af.ico">
+    <title>Perfect Moving Processor</title>
+</head>
+
+<body>
+    <div class="page">
+        <header class="header">
+            <nav class="nav">Navigation Bar - Perfect Moving</nav>
+        </header>
+
+        <main class="content">
+            <div class="container">
+                <h1>Excel File Processor</h1>
+
+                <!-- File Upload Section -->
+                <input type="file" id="upload" accept=".xlsx, .xls" />
+                <button id="processButton">Process File</button>
+
+                <!-- Results Table -->
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job Count</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer class="footer">
+            Footer Part - Perfect Moving
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script defer src="./scripts/index.js"></script>
+</body>
+
+</html>

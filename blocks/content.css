@@ -1,0 +1,76 @@
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.input[type="file"] {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.button {
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+
+
+/* General Table Styling */
+#resultsTable {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+    display: none; /* Hide table initially */
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Table Header Styling */
+#resultsTable thead {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+/* Table Header Cells */
+#resultsTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Table Body Rows */
+#resultsTable tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#resultsTable tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+#resultsTable tbody tr:hover {
+    background-color: #e8e8e8;
+    cursor: default;
+}
+
+/* Table Body Cells */
+#resultsTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Optional: Styling for the entire container if needed */
+table-container {
+    margin: 20px auto;
+    max-width: 800px;
+}
