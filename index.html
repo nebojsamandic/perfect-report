@@ -36,6 +36,27 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+
+                <hr>
+
+                <!-- New file upload section for source and booked job data -->
+                <h1>Excel File Processor - Source and Booked Jobs</h1>
+                <input type="file" id="uploadSource" accept=".xlsx, .xls" />
+                <button id="processSourceButton">Process Source File</button>
+            
+                <!-- Results Table for Source and Booked Jobs -->
+                <table id="sourceResultsTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>New Leads</th>
+                            <th>Open Leads</th>
+                            <th>Booked Leads</th> 
+                            <th>No Price Leads</th> 
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </main>
 
