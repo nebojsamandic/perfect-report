@@ -79,10 +79,33 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <hr>
+            <!-- New file upload section for source and booked job data -->
+            <div class="processing-section">
+                <h1>Payroll Report</h1>
+                <!-- File Upload Section for Payroll Report -->
+                <input class="container__file-upload" type="file" id="uploadPayroll" accept=".xlsx, .xls" />
+                <label class="custom-file-upload" for="uploadPayroll">
+                    Choose File
+                </label>
+                <div class="file-name"></div>
+                <div class="button-container">
+                    <button id="processPayrollButton">Process Payroll</button>
+                </div>
+
+                <!-- Results Table for Payroll -->
+                <table id="payrollResultsTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Payroll Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
-
         </main>
-
         <footer class="footer">
             Sales Tool - Perfect Moving
         </footer>

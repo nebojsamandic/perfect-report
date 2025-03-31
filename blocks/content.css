@@ -26,7 +26,8 @@
 
 /* General Table Styling for both Results Table and Source Results Table */
 #resultsTable,
-#sourceResultsTable {
+#sourceResultsTable
+#payrollResultsTable {
     margin-top: 20px;
     border-collapse: collapse;
     width: 100%;
@@ -38,7 +39,7 @@
 }
 
 /* Table Header Styling */
-#resultsTable thead, #sourceResultsTable thead {
+#resultsTable thead, #sourceResultsTable thead, #payrollResultsTable thead {
     background-color: rgba(124, 77, 255, 0.3);
         font-weight: bold;
     border: 1px solid #e0e0e0;
@@ -47,27 +48,27 @@
 }
 
 /* Table Header Cells */
-#resultsTable th, #sourceResultsTable th {
+#resultsTable th, #sourceResultsTable th, #payrollResultsTable th {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
 
 /* Table Body Rows */
-#resultsTable tbody tr:nth-child(even), #sourceResultsTable tbody tr:nth-child(even) {
+#resultsTable tbody tr:nth-child(even), #sourceResultsTable tbody tr:nth-child(even),#payrollResultsTable tbody tr:nth-child(even){
     background-color: rgba(124, 77, 255, 0.1);  /* Made slightly darker */
 }
 
-#resultsTable tbody tr:nth-child(odd), #sourceResultsTable tbody tr:nth-child(odd) {
+#resultsTable tbody tr:nth-child(odd), #sourceResultsTable tbody tr:nth-child(odd), #payrollResultsTable tbody tr:nth-child(even) {
     background-color: rgba(124, 77, 255, 0.03);  /* Very light purple instead of white */
 }
 
-#resultsTable tbody tr:hover, #sourceResultsTable tbody tr:hover {
+#resultsTable tbody tr:hover, #sourceResultsTable tbody tr:hover, #payrollResultsTable tbody tr:hover {
     background-color: rgba(124, 77, 255, 0.8);
         cursor: default;
 }
 
-#resultsTable td:hover, #sourceResultsTable td:hover {
+#resultsTable td:hover, #sourceResultsTable td:hover, #payrollResultsTable td:hover {
     cursor: pointer;
     position: relative;
     background-color: rgba(124, 77, 255, 0.3);
@@ -75,13 +76,13 @@
 
 
 /* Table Body Cells */
-#resultsTable td, #sourceResultsTable td {
+#resultsTable td, #sourceResultsTable td, #payrollResultsTable td {
     border: 1px solid #e0e0e0;
     padding: 12px;
     text-align: left;
 }
 
-#resultsTable, #sourceResultsTable {
+#resultsTable, #sourceResultsTable, #payrollResultsTable {
     margin: 20px 0;
     box-shadow: 0 2px 8px rgba(124, 77, 255, 0.1);
     border-radius: 8px;
@@ -131,7 +132,7 @@ input[type="file"] {
 }
 
 /* Style for the Process File button */
-#processButton, #processSourceButton {
+#processButton, #processSourceButton, #processPayrollButton {
     display: none;
     margin: 0;  /* Reset any existing margins */
 }

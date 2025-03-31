@@ -227,8 +227,10 @@ function displaySourceResults(results) {
     // Get references to the file inputs and process buttons
     const salesFileInput = document.getElementById('upload');
     const sourceFileInput = document.getElementById('uploadSource');
+    const sourcePayroll = document.getElementById('uploadPayroll');
     const processButton = document.getElementById('processButton');
     const processSourceButton = document.getElementById('processSourceButton');
+    const processPayrollButton = document.getElementById('processPayrollButton');
 
     // Add event listener for Sales Booking file input
     salesFileInput.addEventListener('change', function() {
@@ -247,6 +249,15 @@ function displaySourceResults(results) {
             processSourceButton.style.display = 'none';
         }
     });
+
+        // Add event listener for Source Booking file input
+        sourcePayroll.addEventListener('change', function() {
+            if(this.files.length > 0) {
+                processPayrollButton.style.display = 'block';
+            } else {
+                processPayrollButton.style.display = 'none';
+            }
+        });
 
 // EV ls for copy of the whole clicked row
 document.addEventListener('DOMContentLoaded', function() {
@@ -304,6 +315,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Notification for copying to clipboard
+    if (!document.getElementById('copyNotification')) {
+        const notification = document.createElement('div');
+        notification.id = 'copyNotification';
+        notification.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgb(82, 33, 218);  /* Updated to match your design's primary purple */
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(148, 132, 194, 0.3);
+        `;
+        document.body.appendChild(notification);
+    }
+
+    const payrollTable = document.querySelector('#payrollResultsTable'); // Select only the payroll results table
+    
+    // Add event listener for clicks only on the payroll table
+    if (payrollTable) {
+        payrollTable.addEventListener('click', function(e) {
+            if (e.target.tagName === 'TD') {
+                const cellContent = e.target.textContent.trim(); // Get the content of the clicked cell
+                
+                navigator.clipboard.writeText(cellContent)
+                    .then(() => {
+                        const notification = document.getElementById('copyNotification');
+                        notification.textContent = 'Cell copied to clipboard!';
+                        notification.style.display = 'block';
+                        notification.style.opacity = '1';
+
+                        setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => {
+                                notification.style.display = 'none';
+                            }, 300);
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            }
+        });
+    }
+});
+
 
 //side button wheter menu 
 document.addEventListener('DOMContentLoaded', function() {
@@ -437,3 +501,94 @@ document.addEventListener('DOMContentLoaded', function() {
  
 
 });
+
+
+
+// WORK FROM HERE DOWN
+
+// Payroll processing
+processPayrollButton.addEventListener('click', () => {
+    const fileInput = document.getElementById('uploadPayroll');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Please upload a file first!');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        console.log('Workbook Loaded:', workbook);
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        console.log("JSON Data:", JSON.stringify(jsonData, null, 2));
+
+        const crewResults = processCrewData(jsonData);
+        console.log("Crew Results:", crewResults);
+
+        displayCrewResults(crewResults);
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+// Process Crew Data (Payroll calculation logic)
+function processCrewData(data) {
+    const crewStats = {};
+
+    // Start processing from row 1 (skipping the header row)
+    for (let i = 1; i < data.length; i++) {  // Skip the header row
+        const row = data[i];
+
+        if (row.length === 0) continue;
+
+        const crew = row[1];  // Crew is in column B (index 1)
+        const hourlyRate = row[5];  // Hourly Rate is in column F (index 5)
+
+        // Skip rows where crew or hourlyRate is missing or invalid
+        if (!crew || crew.trim() === "" || !hourlyRate || isNaN(hourlyRate)) continue;
+
+        // Initialize crew stats if not already
+        if (!crewStats[crew]) {
+            crewStats[crew] = 0;  // Initialize total amount for this crew
+        }
+
+        // Add the hourly rate to the total for this crew
+        crewStats[crew] += hourlyRate;  // Just sum the hourly rates (no hours worked)
+    }
+
+    // Convert the crew stats to an array of results
+    return Object.entries(crewStats).map(([crew, totalAmount]) => ({
+        crew,
+        totalAmount: totalAmount.toFixed(2)
+    }));
+}
+
+// Display the results for crew payroll (Crew and Total Amount)
+function displayCrewResults(results) {
+    const table = document.getElementById('payrollResultsTable');
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';  // Clear previous results
+
+    if (results.length === 0) {
+        console.log("No results to display.");
+        return;
+    }
+
+    // Add rows to the table for each crew
+    for (const { crew, totalAmount } of results) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${crew}</td><td>${totalAmount}</td>`;
+        tbody.appendChild(row);
+    }
+
+    // Display the table after adding data
+    table.style.display = 'table';  // Make the table visible
+}
+
