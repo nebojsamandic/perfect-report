@@ -223,3 +223,217 @@ function displaySourceResults(results) {
     table.style.display = 'table';  // Make the table visible
 }
 
+
+    // Get references to the file inputs and process buttons
+    const salesFileInput = document.getElementById('upload');
+    const sourceFileInput = document.getElementById('uploadSource');
+    const processButton = document.getElementById('processButton');
+    const processSourceButton = document.getElementById('processSourceButton');
+
+    // Add event listener for Sales Booking file input
+    salesFileInput.addEventListener('change', function() {
+        if(this.files.length > 0) {
+            processButton.style.display = 'block';
+        } else {
+            processButton.style.display = 'none';
+        }
+    });
+
+    // Add event listener for Source Booking file input
+    sourceFileInput.addEventListener('change', function() {
+        if(this.files.length > 0) {
+            processSourceButton.style.display = 'block';
+        } else {
+            processSourceButton.style.display = 'none';
+        }
+    });
+
+// EV ls for copy of the whole clicked row
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('copyNotification')) {
+        const notification = document.createElement('div');
+        notification.id = 'copyNotification';
+        notification.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color:rgb(82, 33, 218);  /* Updated to match your design's primary purple */
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(148, 132, 194, 0.3);
+        `;
+        document.body.appendChild(notification);
+    }
+
+    const tables = document.querySelectorAll('#resultsTable, #sourceResultsTable');
+    
+    tables.forEach(table => {
+        table.addEventListener('click', function(e) {
+            if (e.target.tagName === 'TD') {
+                const row = e.target.parentElement;
+                const cells = row.cells;
+                let rowContent = [];
+                
+                for(let i = 0; i < cells.length; i++) {
+                    rowContent.push(cells[i].textContent.trim());
+                }
+                
+                navigator.clipboard.writeText(rowContent.join(' - '))
+                    .then(() => {
+                        const notification = document.getElementById('copyNotification');
+                        notification.textContent = 'Row copied to clipboard!';
+                        notification.style.display = 'block';
+                        notification.style.opacity = '1';
+
+                        setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => {
+                                notification.style.display = 'none';
+                            }, 300);
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            }
+        });
+    });
+});
+
+//side button wheter menu 
+document.addEventListener('DOMContentLoaded', function() {
+    const sidePanel = document.querySelector('.side-panel');
+    const sideMenuButton = document.querySelector('.sidemenu-button');
+    const minimizeButton = document.querySelector('.minimize-button');
+    const sidePanelHeader = document.querySelector('.side-panel-header');
+    const sidePanelContent = document.querySelector('.side-panel-content');
+
+    
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    // Weather API fetch function
+    async function fetchWeatherData() {
+        try {
+            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7143&longitude=-74.006&daily=sunrise,sunset,daylight_duration,uv_index_max&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,rain,surface_pressure,visibility&current=temperature_2m,relative_humidity_2m,precipitation,rain,showers,snowfall&timezone=America%2FNew_York&past_days=2&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch');
+            const data = await response.json();
+            
+            // Format and display current conditions
+            const current = data.current;
+            sidePanelContent.innerHTML = `
+            <div class="weather-container">
+                <div class="current-weather">
+                    <h3>Current Conditions</h3>
+                    <p>Temperature: ${current.temperature_2m}°F</p>
+                    <p>Humidity: ${current.relative_humidity_2m}%</p>
+                    <p>Rain: ${current.rain} inches</p>
+                </div>
+                
+                <div class="daily-forecast">
+                    <h3>Today's Details</h3>
+                    <p>Sunrise: ${formatTime(data.daily.sunrise[2])}</p>
+                    <p>Sunset: ${formatTime(data.daily.sunset[2])}</p>
+                    <p>UV Index: ${data.daily.uv_index_max[2]}</p>
+                    <p>Daylight: ${Math.round(data.daily.daylight_duration[2] / 3600)} hours</p>
+                </div>
+            </div>
+        `;
+        } catch (error) {
+            sidePanelContent.innerHTML = '<p>Error loading weather data. Please try again later.</p>';
+            console.error('Error:', error);
+        }
+    }
+
+    function formatTime(timeString) {
+        return new Date(timeString).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    sideMenuButton.addEventListener('click', () => {
+        sidePanel.classList.add('active');
+        sideMenuButton.classList.add('hidden');
+        fetchWeatherData(); // Fetch weather data when panel opens
+    });
+    
+    setInterval(fetchWeatherData, 25000);  // 25000 milliseconds = 25 seconds
+
+
+    minimizeButton.addEventListener('click', () => {
+        sidePanel.classList.remove('active');
+        sideMenuButton.classList.remove('hidden');
+    });
+
+    // Restore minimize button functionality
+    minimizeButton.addEventListener('click', () => {
+        sidePanel.classList.remove('active');
+        sideMenuButton.classList.remove('hidden');
+        // Reset position when minimizing
+        xOffset = 0;
+        yOffset = 0;
+        sidePanel.style.transform = 'translate(0, -50%)';
+    });
+
+    // Restore menu button functionality
+    sideMenuButton.addEventListener('click', () => {
+        sidePanel.classList.add('active');
+        sideMenuButton.classList.add('hidden');
+        fetchWeatherData();
+    });
+
+    // Dragging functionality
+    sidePanelHeader.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    function dragStart(e) {
+        if (e.target.closest('.minimize-button')) {
+            return; // Don't start drag if clicking minimize button
+        }
+        
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+
+        if (e.target.closest('.side-panel-header')) {
+            isDragging = true;
+        }
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+
+            xOffset = currentX;
+            yOffset = currentY;
+
+            setTranslate(currentX, currentY, sidePanel);
+        }
+    }
+
+    function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+    }
+ 
+
+});
