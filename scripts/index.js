@@ -629,10 +629,21 @@ function normalizeState(state) {
 
 
 //Rock Report for State compareson
+// When a file is uploaded, toggle the visibility of the "Process Moves" button
+document.getElementById("uploadStates").addEventListener("change", function () {
+    const processButton = document.getElementById("processStatesButton");
+    if (this.files.length > 0) {
+        processButton.style.display = "inline-block";  // Make the button visible
+    } else {
+        processButton.style.display = "none";  // Hide the button if no file is selected
+    }
+});
+
+// When the "Process Moves" button is clicked, process the file
 document.getElementById("processStatesButton").addEventListener("click", function () {
     const fileInput = document.getElementById("uploadStates");
     const file = fileInput.files[0];
-    if (!file) return;
+    if (!file) return; // Exit if no file is selected
 
     const reader = new FileReader();
     reader.onload = function (e) {
