@@ -628,7 +628,8 @@ function normalizeState(state) {
 }
 
 
-//Rock Report for State compareson
+// Rock Report for State comparison
+
 // When a file is uploaded, toggle the visibility of the "Process Moves" button
 document.getElementById("uploadStates").addEventListener("change", function () {
     const processButton = document.getElementById("processStatesButton");
@@ -639,64 +640,136 @@ document.getElementById("uploadStates").addEventListener("change", function () {
     }
 });
 
+// Helper to parse Excel-style serial dates or standard date strings
+function parseExcelDate(value) {
+    if (typeof value === "number") {
+        return new Date(Math.round((value - 25569) * 86400 * 1000));
+    } else if (typeof value === "string") {
+        const parsed = new Date(value);
+        return isNaN(parsed) ? null : parsed;
+    } else if (value instanceof Date && !isNaN(value)) {
+        return value;
+    }
+    return null;
+}
+
 // When the "Process Moves" button is clicked, process the file
 document.getElementById("processStatesButton").addEventListener("click", function () {
     const fileInput = document.getElementById("uploadStates");
     const file = fileInput.files[0];
-    if (!file) return; // Exit if no file is selected
+    if (!file) return;
 
     const reader = new FileReader();
     reader.onload = function (e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: "array" });
-
+    
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
+    
         const movesFromNYC = {};
         const movesToNYC = {};
-
+    
+        // ✅ Date Range Fix: Read from Column B (index 1)
+        const dates = rows.slice(1)
+            .map(row => {
+                const rawDate = row[1];
+                if (typeof rawDate === "string") {
+                    const [month, day, year] = rawDate.split("/").map(Number);
+                    if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+                        return new Date(year, month - 1, day);
+                    }
+                } else if (rawDate instanceof Date && !isNaN(rawDate)) {
+                    return rawDate;
+                }
+                return null;
+            })
+            .filter(date => date && !isNaN(date));
+    
+        let dateRangeText = "Date range not available";
+        if (dates.length > 0) {
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            dateRangeText = `Date Range: ${minDate.toLocaleDateString(undefined, options)} - ${maxDate.toLocaleDateString(undefined, options)}`;
+        }
+    
+        // Display date range
+        const dateRangeElement = document.getElementById("dateRangeDisplay");
+        if (dateRangeElement) {
+            dateRangeElement.textContent = dateRangeText;
+            dateRangeElement.style.display = "block";
+        }
+    
+        // ✅ Move counts
         for (let i = 1; i < rows.length; i++) {
             const pickupRaw = rows[i][2];
             const dropoffRaw = rows[i][3];
             const pickup = normalizeState(pickupRaw);
             const dropoff = normalizeState(dropoffRaw);
-
+    
             if (!pickup || !dropoff) continue;
-
+    
             if (pickup === "NEW YORK" && dropoff !== "NEW YORK") {
                 movesFromNYC[dropoff] = (movesFromNYC[dropoff] || 0) + 1;
             } else if (dropoff === "NEW YORK" && pickup !== "NEW YORK") {
                 movesToNYC[pickup] = (movesToNYC[pickup] || 0) + 1;
             }
         }
-
+    
+        // ✅ Render table
         const allStates = new Set([...Object.keys(movesFromNYC), ...Object.keys(movesToNYC)]);
         const table = document.getElementById("stateResultsTable");
         const tbody = table.querySelector("tbody");
         tbody.innerHTML = "";
-
+    
         allStates.forEach(state => {
             const row = document.createElement("tr");
-
+    
             const stateCell = document.createElement("td");
             stateCell.textContent = state;
-
+    
             const toNYCCell = document.createElement("td");
             toNYCCell.textContent = movesToNYC[state] || 0;
-
+    
             const fromNYCCell = document.createElement("td");
             fromNYCCell.textContent = movesFromNYC[state] || 0;
-
+    
             row.appendChild(stateCell);
             row.appendChild(toNYCCell);
             row.appendChild(fromNYCCell);
             tbody.appendChild(row);
         });
-
+    
+        // ✅ Add total row
+        let totalToNYC = 0;
+        let totalFromNYC = 0;
+    
+        Object.values(movesToNYC).forEach(val => totalToNYC += val);
+        Object.values(movesFromNYC).forEach(val => totalFromNYC += val);
+    
+        const totalRow = document.createElement("tr");
+        totalRow.style.fontWeight = "bold";
+    
+        const totalLabelCell = document.createElement("td");
+        totalLabelCell.textContent = "TOTAL";
+    
+        const totalToNYCCell = document.createElement("td");
+        totalToNYCCell.textContent = totalToNYC;
+    
+        const totalFromNYCCell = document.createElement("td");
+        totalFromNYCCell.textContent = totalFromNYC;
+    
+        totalRow.appendChild(totalLabelCell);
+        totalRow.appendChild(totalToNYCCell);
+        totalRow.appendChild(totalFromNYCCell);
+    
+        tbody.appendChild(totalRow);
+    
         table.style.display = "table";
     };
+    
 
     reader.readAsArrayBuffer(file);
 });
