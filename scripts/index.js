@@ -592,3 +592,100 @@ function displayCrewResults(results) {
     table.style.display = 'table';  // Make the table visible
 }
 
+const stateNameMap = {
+    "AL": "ALABAMA", "AK": "ALASKA", "AZ": "ARIZONA", "AR": "ARKANSAS",
+    "CA": "CALIFORNIA", "CO": "COLORADO", "CT": "CONNECTICUT", "DE": "DELAWARE",
+    "FL": "FLORIDA", "GA": "GEORGIA", "HI": "HAWAII", "ID": "IDAHO",
+    "IL": "ILLINOIS", "IN": "INDIANA", "IA": "IOWA", "KS": "KANSAS",
+    "KY": "KENTUCKY", "LA": "LOUISIANA", "ME": "MAINE", "MD": "MARYLAND",
+    "MA": "MASSACHUSETTS", "MI": "MICHIGAN", "MN": "MINNESOTA", "MS": "MISSISSIPPI",
+    "MO": "MISSOURI", "MT": "MONTANA", "NE": "NEBRASKA", "NV": "NEVADA",
+    "NH": "NEW HAMPSHIRE", "NJ": "NEW JERSEY", "NM": "NEW MEXICO", "NY": "NEW YORK",
+    "NC": "NORTH CAROLINA", "ND": "NORTH DAKOTA", "OH": "OHIO", "OK": "OKLAHOMA",
+    "OR": "OREGON", "PA": "PENNSYLVANIA", "RI": "RHODE ISLAND", "SC": "SOUTH CAROLINA",
+    "SD": "SOUTH DAKOTA", "TN": "TENNESSEE", "TX": "TEXAS", "UT": "UTAH",
+    "VT": "VERMONT", "VA": "VIRGINIA", "WA": "WASHINGTON", "WV": "WEST VIRGINIA",
+    "WI": "WISCONSIN", "WY": "WYOMING"
+};
+
+// Additional helper to normalize any messy state name to clean full name
+function normalizeState(state) {
+    if (!state) return '';
+    const s = state.toString().trim().toUpperCase();
+
+    // Direct map if matches a known abbreviation
+    if (stateNameMap[s]) return stateNameMap[s];
+
+    // Handle common NYC variants
+    if (["NYC", "NEW YORK", "NY"].includes(s)) return "NEW YORK";
+
+    // Try to match against full names
+    for (const abbr in stateNameMap) {
+        if (stateNameMap[abbr] === s) return s;
+    }
+
+    return s; // fallback as-is
+}
+
+
+//Rock Report for State compareson
+document.getElementById("processStatesButton").addEventListener("click", function () {
+    const fileInput = document.getElementById("uploadStates");
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        const movesFromNYC = {};
+        const movesToNYC = {};
+
+        for (let i = 1; i < rows.length; i++) {
+            const pickupRaw = rows[i][2];
+            const dropoffRaw = rows[i][3];
+            const pickup = normalizeState(pickupRaw);
+            const dropoff = normalizeState(dropoffRaw);
+
+            if (!pickup || !dropoff) continue;
+
+            if (pickup === "NEW YORK" && dropoff !== "NEW YORK") {
+                movesFromNYC[dropoff] = (movesFromNYC[dropoff] || 0) + 1;
+            } else if (dropoff === "NEW YORK" && pickup !== "NEW YORK") {
+                movesToNYC[pickup] = (movesToNYC[pickup] || 0) + 1;
+            }
+        }
+
+        const allStates = new Set([...Object.keys(movesFromNYC), ...Object.keys(movesToNYC)]);
+        const table = document.getElementById("stateResultsTable");
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+
+        allStates.forEach(state => {
+            const row = document.createElement("tr");
+
+            const stateCell = document.createElement("td");
+            stateCell.textContent = state;
+
+            const toNYCCell = document.createElement("td");
+            toNYCCell.textContent = movesToNYC[state] || 0;
+
+            const fromNYCCell = document.createElement("td");
+            fromNYCCell.textContent = movesFromNYC[state] || 0;
+
+            row.appendChild(stateCell);
+            row.appendChild(toNYCCell);
+            row.appendChild(fromNYCCell);
+            tbody.appendChild(row);
+        });
+
+        table.style.display = "table";
+    };
+
+    reader.readAsArrayBuffer(file);
+});

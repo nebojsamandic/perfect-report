@@ -104,7 +104,36 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <hr>
+                <!-- State Move Tracker -->
+                <div class="processing-section">
+                    <h1>State Move Tracker</h1>
+                    <input class='container__file-upload' type="file" id="uploadStates" accept=".xlsx, .xls" />
+                    <label class="custom-file-upload" for="uploadStates">
+                        Choose File
+                    </label>
+                    <div class="file-name"></div>
+                    <div class="button-container">
+                        <button id="processStatesButton">Process Moves</button>
+                    </div>
+
+                    <!-- Results Table for State Moves -->
+                    <div class="table-container">
+                        <table id="stateResultsTable">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>To NYC</th>
+                                    <th>From NYC</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                </div>
         </div>
+
         </main>
         <footer class="footer">
             Sales Tool - Perfect Moving
